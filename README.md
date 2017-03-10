@@ -29,7 +29,7 @@ type params = {
 
 let _ =
   let term = Cmdliner.Term.(const show_params $ params_cmdliner_term ()) in
-  tlet info = Cmdliner.Term.info Sys.argv.(0) in
+  let info = Cmdliner.Term.info Sys.argv.(0) in
   Cmdliner.Term.eval (term, info)
 ```
 
@@ -67,6 +67,6 @@ OPTIONS
 
 ## Attributes supported
 
-1. Docs: `[@doc "Overwrites the docstring"`, `[@docs "SECTION TWO"]`, `[@docv "VAL"]`
+1. Docs: `[@doc "Overwrites the docstring"]`, `[@docs "SECTION TWO"]`, `[@docv "VAL"]`
 2. Environment variables: `[@env "ENVNAME"]`, `[@env.doc "Docs for the variable"]`, `[@env.docs "SECTION ENVS"]`
 3. Other: `[@list_sep '@']`, `[@default 123]`, `[@enum [("a", Foo); ("b", Bar)]]`, `[@aka ["b";"another-flag-name"]]`

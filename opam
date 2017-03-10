@@ -4,10 +4,10 @@ version: "0.0.0"
 maintainer: "Isaac Hodes <isaachodes@gmail.com>"
 authors: [ "Isaac Hodes <isaachodes@gmail.com>" ]
 license: "MIT"
-homepage: "https://github.com/ihodes/ppx_deriving_cmdliner"
-doc: "http://ihodes.github.io/ppx_deriving_cmdliner"
-bug-reports: "https://github.com/ihodes/ppx_deriving_cmdliner/issues"
-dev-repo: "https://github.com/ihodes/ppx_deriving_cmdliner.git"
+homepage: "https://github.com/hammerlab/ppx_deriving_cmdliner"
+doc: "http://hammerlab.github.io/ppx_deriving_cmdliner"
+bug-reports: "https://github.com/hammerlab/ppx_deriving_cmdliner/issues"
+dev-repo: "https://github.com/hammerlab/ppx_deriving_cmdliner.git"
 tags: [ "syntax" "cli" ]
 substs: [ "pkg/META" ]
 build: [

@@ -130,6 +130,25 @@ let positional () =
     ~argv ~expected ~pprinter:pp_pos_types
 
 
+type enum_types = {
+  a1: int list; [@enum ["one",1;"two",2;"three",3;"four",4]]
+  b1: [ `A | `B | `C]; [@enum ["a",`A;"b",`B;"c",`C]]
+} [@@deriving cmdliner,show]
+let enums () =
+  let argv = [|
+    "cmd";
+    "--a1"; "one,two";
+    "--b1"; "b"
+  |] in
+  let expected = {
+    a1 = [1;2];
+    b1 = `B
+  } in
+  cmd_test_case "expected enum args to work"
+    ~term:(enum_types_cmdliner_term ())
+    ~argv ~expected ~pprinter:pp_enum_types
+
+
 
 let test_set = [
   "simple types" , `Quick, simple;
@@ -137,6 +156,7 @@ let test_set = [
   "ENV types" , `Quick, env;
   "list sep types" , `Quick, list_sep;
   "positional types" , `Quick, positional;
+  "enum types" , `Quick, enums;
 ]
 
 let () =

@@ -1,0 +1,6 @@
+*.native
+*.byte
+*.docdir
+_build
+*.install
+pkg/META

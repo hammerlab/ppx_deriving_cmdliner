@@ -115,8 +115,7 @@ let rec docv_for ?list_sep typ =
     [%expr Printf.sprintf "%s%c..."
         [%e docv_for typ]
         [%e char (match list_sep with None -> ',' | Some s -> s)]]
-  | _ -> failwith (Printf.sprintf "docv_for doesn't support: `%s`"
-                     (Ppx_deriving.string_of_core_type typ))
+  | _ -> [%expr "VAR"]
 
 
 let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
@@ -153,20 +152,6 @@ let rec ser_expr_of_typ typ attrs name =
   let pos = attr_int_opt "pos" attrs in
   let info' = info_for ?pos ~attrs ~name ?list_sep ~typ ~env:env' in
   match typ with
-  | [%type: int] | [%type: int32] | [%type: Int32.t] | [%type: int64]
-  | [%type: Int64.t] | [%type: nativeint] | [%type: Nativeint.t]
-  | [%type: float] | [%type: string] | [%type: char] | [%type: bytes]
-  | [%type: [%t? _] list] | [%type: [%t? _] array] ->
-    let t = match pos with
-    | None -> [%expr Cmdliner.Arg.opt]
-    | Some i -> [%expr Cmdliner.Arg.pos [%e int i]]
-    in
-    begin match default' with
-    | None -> [%expr
-      Cmdliner.Arg.(required & [%e t] (some [%e conv']) None & [%e info'])]
-    | Some d -> [%expr
-      Cmdliner.Arg.(value & [%e t] [%e conv'] [%e d] & [%e info'])]
-    end
   | [%type: bool] ->
     begin match default' with
     | None | Some [%expr false] -> [%expr
@@ -184,10 +169,21 @@ let rec ser_expr_of_typ typ attrs name =
     | Some _ -> failwith "`option` types shouldn't have defaults."
     end
   | [%type: unit] -> failwith "`unit` is not supported in Ppx_deriving_cmdliner"
-  | { ptyp_loc } ->
-    raise_errorf ~loc:ptyp_loc "%s cannot be derived for `%s`"
-                 deriver (Ppx_deriving.string_of_core_type typ)
-
+  | [%type: int] | [%type: int32] | [%type: Int32.t] | [%type: int64]
+  | [%type: Int64.t] | [%type: nativeint] | [%type: Nativeint.t]
+  | [%type: float] | [%type: string] | [%type: char] | [%type: bytes]
+  | [%type: [%t? _] list] | [%type: [%t? _] array]
+  | _ ->
+    let t = match pos with
+    | None -> [%expr Cmdliner.Arg.opt]
+    | Some i -> [%expr Cmdliner.Arg.pos [%e int i]]
+    in
+    begin match default' with
+    | None -> [%expr
+      Cmdliner.Arg.(required & [%e t] (some [%e conv']) None & [%e info'])]
+    | Some d -> [%expr
+      Cmdliner.Arg.(value & [%e t] [%e conv'] [%e d] & [%e info'])]
+    end
 
 let wrap_runtime decls =
   Ppx_deriving.sanitize ~module_:(Lident "Ppx_deriving_cmdliner_runtime") decls

@@ -19,6 +19,7 @@ type common_types = {
   f1: int array;
   g1: int list;
   h1: bool;
+  i1: bytes;
 } [@@deriving cmdliner,show]
 let simple () =
   let argv = [|
@@ -31,6 +32,7 @@ let simple () =
     "--f1"; "1,2,3,4,5";
     "--g1"; "100,200,300";
     "--h1";
+    "--i1"; "testing"
   |] in
   let expected = {
     a1 = "apple";
@@ -40,7 +42,8 @@ let simple () =
     e1 = ["apple";"banana";"pear"];
     f1 = [|1;2;3;4;5|];
     g1 = [100;200;300];
-    h1 = true
+    h1 = true;
+    i1 = Bytes.of_string "testing"
   } in
   cmd_test_case "expected simple types to match"
     ~term:(common_types_cmdliner_term ())

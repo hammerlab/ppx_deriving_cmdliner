@@ -86,15 +86,17 @@ let rec converter_for ?list_sep ?enum typ =
   | _, [%type: int] -> [%expr Cmdliner.Arg.int]
   | _, [%type: int32] | _, [%type: Int32.t] -> [%expr Cmdliner.Arg.int32]
   | _, [%type: int64] | _, [%type: Int64.t] -> [%expr Cmdliner.Arg.int64]
-  | _, [%type: nativeint] | _, [%type: Nativeint.t] -> [%expr Cmdliner.Arg.nativeint]
+  | _, [%type: nativeint] | _, [%type: Nativeint.t] ->
+    [%expr Cmdliner.Arg.nativeint]
   | _, [%type: float] -> [%expr Cmdliner.Arg.float]
   | _, [%type: bool] -> [%expr Cmdliner.Arg.bool]
   | _, [%type: string] -> [%expr Cmdliner.Arg.string]
   | _, [%type: char] -> [%expr Cmdliner.Arg.char]
   | _, [%type: [%t? typ] option] -> converter_for ?list_sep ?enum typ
   | _, [%type: bytes] ->
-    [%expr ((fun s -> `Ok (Bytes.of_string s)),
-            (fun fmt b -> Format.fprintf fmt "%s" (Bytes.to_string b)))]
+    [%expr Cmdliner.Arg.conv
+        ((fun s -> Result.Ok (Bytes.of_string s)),
+         (fun fmt b -> Format.fprintf fmt "%s" (Bytes.to_string b)))]
   | _, _ -> failwith (Printf.sprintf "converter_for doesn't support: `%s`"
                         (Ppx_deriving.string_of_core_type typ))
 

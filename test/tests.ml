@@ -171,14 +171,17 @@ module M = struct
 end
 type custom_types = {
   foo: M.t; [@conv M.cmdliner_converter]
+  bar: M.t;
 } [@@deriving cmdliner,show]
 let customs () =
   let argv = [|
     "cmd";
-    "--foo"; "11|200"
+    "--foo"; "11|200";
+    "--bar"; "0|13";
   |] in
   let expected = {
-    foo = (11,200)
+    foo = (11,200);
+    bar = (0,13)
   } in
   cmd_test_case "expected custom type converter to work"
     ~term:(custom_types_cmdliner_term ())

@@ -97,10 +97,14 @@ let rec converter_for ?list_sep ?enum typ =
     [%expr Cmdliner.Arg.conv
         ((fun s -> Result.Ok (Bytes.of_string s)),
          (fun fmt b -> Format.fprintf fmt "%s" (Bytes.to_string b)))]
-  | _, _ -> failwith
-              (Printf.sprintf
-                 "Ppx_deriving_cmdliner: converter_for doesn't support: `%s`"
-                 (Ppx_deriving.string_of_core_type typ))
+  | _, { ptyp_desc = Ptyp_constr ({ txt = lid }, args) } ->
+    let fn_name = Ppx_deriving.mangle_lid (`Suffix "cmdliner_converter") lid in
+    [%expr Cmdliner.Arg.conv [%e Exp.ident (mknoloc fn_name)]]
+  | _, _ ->
+    failwith
+      (Printf.sprintf
+         "Ppx_deriving_cmdliner: converter_for doesn't support: `%s`"
+         (Ppx_deriving.string_of_core_type typ))
 
 
 let rec docv_for ?list_sep typ =

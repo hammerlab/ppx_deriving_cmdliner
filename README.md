@@ -65,6 +65,43 @@ OPTIONS
             Your Github username
 ```
 
+## Features
+
+### Custom type support
+
+Ppx_deriving_cmdliner supports arbitrary types via a `cmdliner_converter`
+interface. For example, the below two methods work for supporting `M.t` (from
+`test/tests.ml`)
+
+```ocaml
+module M = struct
+  type t = int * int
+  let fst (f,_) = f
+  let snd (_,s) = s
+  let of_string s =
+    try
+      let sepi = String.index s '|' in
+      let fst = String.sub s 0 sepi in
+      let snd = String.sub s (sepi+1) ((String.length s)-sepi-1) in
+      Result.Ok (int_of_string fst, int_of_string snd)
+    with _ -> Result.Error (`Msg (Printf.sprintf "Couldn't parse `%s`" s))
+  let to_string t =
+    Printf.sprintf "%d|%d" (fst t) (snd t)
+  let cmdliner_converter =
+    of_string,
+    (fun fmt t -> Format.fprintf fmt "%s" (to_string t))
+end
+type custom_types = {
+  foo: M.t; [@conv M.cmdliner_converter]
+  bar: M.t;
+} [@@deriving cmdliner]
+```
+
+In short, a value of type `string -> ('a, [ ``` `Msg ``` of string ])
+Result.result) * 'a printer` must be provided (or will be looked for under the
+name `cmdliner_converter` if the type is `t`, else
+`type_name_cmdliner_converter`) for the given type.
+
 ## Attributes supported
 
 1. Docs: `[@doc "Overwrites the docstring"]`, `[@docs "SECTION TWO"]`, `[@docv "VAL"]`

@@ -27,6 +27,12 @@ let key_attr_exists attrs name =
   Ppx_deriving.attr ~deriver name attrs |>
   Ppx_deriving.Arg.get_flag ~deriver
 
+let value_attr_exists attrs name =
+  match Ppx_deriving.attr ~deriver name attrs |>
+        Ppx_deriving.Arg.(get_attr ~deriver expr) with
+  | Some _ -> true
+  | None -> false
+
 let attr_char_opt name attrs =
   Ppx_deriving.attr ~deriver name attrs |>
   Ppx_deriving.Arg.(get_attr ~deriver char)
@@ -45,16 +51,14 @@ let attr_int_opt name attrs =
   Ppx_deriving.attr ~deriver name attrs |>
   Ppx_deriving.Arg.(get_attr ~deriver int)
 
-let attr_key  = attr_string "key"
-let attr_name = attr_string "name"
-
-let attr_default attrs =
-  Ppx_deriving.attr ~deriver "default" attrs |>
-  Ppx_deriving.Arg.(get_attr ~deriver expr)
-
 let attr_expr attrs name =
   Ppx_deriving.attr ~deriver name attrs |>
   Ppx_deriving.Arg.(get_attr ~deriver expr)
+
+let attr_expr_exn attrs name =
+  match attr_expr attrs name with
+  | None -> failwith "attr_expr_exn: expected an expression"
+  | Some e -> e
 
 let clize_flag =  String.map (fun c -> if c = '_' then '-' else c)
 
@@ -62,12 +66,6 @@ let parse_options options =
   options |> List.iter (fun (name, expr) ->
     match name with
     | _ -> raise_errorf ~loc:expr.pexp_loc "%s does not support option %s" deriver name)
-
-let attr_default attrs =
-  Ppx_deriving.(attrs |> attr ~deriver "default" |> Arg.(get_attr ~deriver expr))
-
-let attr_split attrs =
-  Ppx_deriving.(attrs |> attr ~deriver "split" |> Arg.get_flag ~deriver)
 
 
 let rec converter_for ?list_sep ?enum typ =
@@ -124,7 +122,7 @@ let rec docv_for ?list_sep typ =
 
 
 let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
-    let name' = str (clize_flag (attr_key name attrs)) in
+    let name' = str (clize_flag name) in
     let aka = match attr_expr attrs "aka" with
     | None -> [%expr []]
     | Some e -> e
@@ -143,7 +141,7 @@ let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
 
 
 let rec ser_expr_of_typ typ attrs name =
-  let default' = attr_default attrs in
+  let default' = attr_expr attrs "default" in
   let env' =
     let docs' = attr_string_opt "env.docs" attrs |> expr_opt ~kind:str in
     let doc' = attr_string_opt "env.doc" attrs |> expr_opt ~kind:str in
@@ -160,6 +158,8 @@ let rec ser_expr_of_typ typ attrs name =
   let pos = attr_int_opt "pos" attrs in
   let info' = info_for ?pos ~attrs ~name ?list_sep ~typ ~env:env' in
   match typ with
+  | _ when value_attr_exists attrs "term" ->
+    attr_expr_exn attrs "term"
   | [%type: bool] ->
     begin match default' with
     | None | Some [%expr false] -> [%expr
@@ -326,7 +326,7 @@ let ser_str_of_type_ext ~options ~path ({ ptyext_path = { loc }} as type_ext) =
              constructor declaration *)
           acc_cases
         | Pext_decl (pext_args, _) ->
-          let json_name = attr_name name' pext_attributes in
+          let json_name = attr_string "name" name' pext_attributes in
           let case =
             match pext_args with
             | Pcstr_tuple([]) ->

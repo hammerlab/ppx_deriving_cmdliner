@@ -205,6 +205,26 @@ let opt_all () =
     ~argv ~expected ~pprinter:pp_opt_all_types
 
 
+type foo = {
+  a1: string; b1: string;
+} [@@deriving cmdliner,show]
+type terms_types = {
+  foo: foo; [@term foo_cmdliner_term ()]
+} [@@deriving cmdliner,show]
+let terms () =
+  let argv = [|
+    "cmd";
+    "--a1"; "apple";
+    "--b1"; "pie"
+  |] in
+  let expected = {
+    foo = {a1 = "apple"; b1 = "pie";}
+  } in
+  cmd_test_case "expected custom @term to work"
+    ~term:(terms_types_cmdliner_term ())
+    ~argv ~expected ~pprinter:pp_terms_types
+
+
 let test_set = [
   "simple types" , `Quick, simple;
   "default types" , `Quick, defaults;
@@ -214,6 +234,7 @@ let test_set = [
   "enum types" , `Quick, enums;
   "custom types", `Quick, customs;
   "opt_all type", `Quick, opt_all;
+  "term type", `Quick, terms;
 ]
 
 let () =

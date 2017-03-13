@@ -23,12 +23,9 @@ let expr_opt ~kind =
   | None -> [%expr None]
   | Some x -> [%expr Some [%e kind x]]
 
-let attr_int_encoding attrs =
-  match Ppx_deriving.attr ~deriver "encoding" attrs |>
-        Ppx_deriving.Arg.(get_attr ~deriver (enum ["string"; "number"])) with
-  | Some "string" -> `String
-  | Some "number" | None -> `Int
-  | _ -> assert false
+let key_attr_exists attrs name =
+  Ppx_deriving.attr ~deriver name attrs |>
+  Ppx_deriving.Arg.get_flag ~deriver
 
 let attr_char_opt name attrs =
   Ppx_deriving.attr ~deriver name attrs |>
@@ -178,6 +175,18 @@ let rec ser_expr_of_typ typ attrs name =
     | None -> [%expr
       Cmdliner.Arg.(value & opt (some [%e conv']) None & [%e info'])]
     | Some _ -> failwith "`option` types shouldn't have defaults."
+    end
+  | [%type: [%t? typ] list]
+    when key_attr_exists attrs "opt_all" ->
+    let conv' = match attr_expr attrs "conv" with
+    | None -> converter_for ?list_sep ?enum:(attr_expr attrs "enum") typ
+    | Some conv -> [%expr Cmdliner.Arg.conv [%e conv]]
+    in
+    begin match default' with
+    | None -> [%expr
+      Cmdliner.Arg.(value & opt_all [%e conv'] [] & [%e info'])]
+    | Some d -> [%expr
+      Cmdliner.Arg.(value & opt_all [%e conv'] [%e d] & [%e info'])]
     end
   | [%type: unit] -> failwith "`unit` is not supported in Ppx_deriving_cmdliner"
   | [%type: int] | [%type: int32] | [%type: Int32.t] | [%type: int64]

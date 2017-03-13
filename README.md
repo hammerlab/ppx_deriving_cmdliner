@@ -106,4 +106,4 @@ name `cmdliner_converter` if the type is `t`, else
 
 1. Docs: `[@doc "Overwrites the docstring"]`, `[@docs "SECTION TWO"]`, `[@docv "VAL"]`
 2. Environment variables: `[@env "ENVNAME"]`, `[@env.doc "Docs for the variable"]`, `[@env.docs "SECTION ENVS"]`
-3. Other: `[@list_sep '@']`, `[@default 123]`, `[@enum [("a", Foo); ("b", Bar)]]`, `[@aka ["b";"another-flag-name"]]`, `[@conv cmdliner_converter]` (cf. [required argument to `conv`](http://erratique.ch/software/cmdliner/doc/Cmdliner.Arg.html#VALconv) in Cmdliner)
+3. Other: `[@list_sep '@']`, `[@default 123]`, `[@enum [("a", Foo); ("b", Bar)]]`, `[@aka ["b";"another-flag-name"]]`, `[@conv cmdliner_converter]` (cf. [required argument to `conv`](http://erratique.ch/software/cmdliner/doc/Cmdliner.Arg.html#VALconv) in Cmdliner), `[@opt_all]` only on `a' list` fields.

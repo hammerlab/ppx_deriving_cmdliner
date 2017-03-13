@@ -188,6 +188,22 @@ let customs () =
     ~argv ~expected ~pprinter:pp_custom_types
 
 
+type opt_all_types = {
+  foo: string list; [@opt_all]
+} [@@deriving cmdliner,show]
+let opt_all () =
+  let argv = [|
+    "cmd";
+    "--foo"; "test";
+    "--foo"; "foo"
+  |] in
+  let expected = {
+    foo = ["test"; "foo"]
+  } in
+  cmd_test_case "expected opt_all list to work"
+    ~term:(opt_all_types_cmdliner_term ())
+    ~argv ~expected ~pprinter:pp_opt_all_types
+
 
 let test_set = [
   "simple types" , `Quick, simple;
@@ -197,6 +213,7 @@ let test_set = [
   "positional types" , `Quick, positional;
   "enum types" , `Quick, enums;
   "custom types", `Quick, customs;
+  "opt_all type", `Quick, opt_all;
 ]
 
 let () =

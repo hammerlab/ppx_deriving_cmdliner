@@ -97,8 +97,10 @@ let rec converter_for ?list_sep ?enum typ =
     [%expr Cmdliner.Arg.conv
         ((fun s -> Result.Ok (Bytes.of_string s)),
          (fun fmt b -> Format.fprintf fmt "%s" (Bytes.to_string b)))]
-  | _, _ -> failwith (Printf.sprintf "converter_for doesn't support: `%s`"
-                        (Ppx_deriving.string_of_core_type typ))
+  | _, _ -> failwith
+              (Printf.sprintf
+                 "Ppx_deriving_cmdliner: converter_for doesn't support: `%s`"
+                 (Ppx_deriving.string_of_core_type typ))
 
 
 let rec docv_for ?list_sep typ =
@@ -150,7 +152,10 @@ let rec ser_expr_of_typ typ attrs name =
         (Cmdliner.Arg.env_var ?docs:[%e docs'] ?doc:[%e doc'] [%e str e])]
   in
   let list_sep = attr_char_opt "sep" attrs in
-  let conv' = converter_for ?list_sep ?enum:(attr_expr attrs "enum") typ in
+  let conv' = match attr_expr attrs "conv" with
+  | None -> converter_for ?list_sep ?enum:(attr_expr attrs "enum") typ
+  | Some conv -> [%expr Cmdliner.Arg.conv [%e conv]]
+  in
   let pos = attr_int_opt "pos" attrs in
   let info' = info_for ?pos ~attrs ~name ?list_sep ~typ ~env:env' in
   match typ with

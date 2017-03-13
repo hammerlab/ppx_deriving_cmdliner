@@ -152,6 +152,39 @@ let enums () =
     ~argv ~expected ~pprinter:pp_enum_types
 
 
+module M = struct
+  type t = int * int [@@deriving show]
+  let fst (f,_) = f
+  let snd (_,s) = s
+  let of_string s =
+    try
+      let sepi = String.index s '|' in
+      let fst = String.sub s 0 sepi in
+      let snd = String.sub s (sepi+1) ((String.length s)-sepi-1) in
+      Result.Ok (int_of_string fst, int_of_string snd)
+    with _ -> Result.Error (`Msg (Printf.sprintf "Couldn't parse `%s`" s))
+  let to_string t =
+    Printf.sprintf "%d|%d" (fst t) (snd t)
+  let cmdliner_converter =
+    of_string,
+    (fun fmt t -> Format.fprintf fmt "%s" (to_string t))
+end
+type custom_types = {
+  foo: M.t; [@conv M.cmdliner_converter]
+} [@@deriving cmdliner,show]
+let customs () =
+  let argv = [|
+    "cmd";
+    "--foo"; "11|200"
+  |] in
+  let expected = {
+    foo = (11,200)
+  } in
+  cmd_test_case "expected custom type converter to work"
+    ~term:(custom_types_cmdliner_term ())
+    ~argv ~expected ~pprinter:pp_custom_types
+
+
 
 let test_set = [
   "simple types" , `Quick, simple;
@@ -160,6 +193,7 @@ let test_set = [
   "list sep types" , `Quick, list_sep;
   "positional types" , `Quick, positional;
   "enum types" , `Quick, enums;
+  "custom types", `Quick, customs;
 ]
 
 let () =

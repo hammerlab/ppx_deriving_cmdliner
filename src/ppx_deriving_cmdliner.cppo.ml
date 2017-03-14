@@ -122,22 +122,25 @@ let rec docv_for ?list_sep typ =
 
 
 let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
-    let name' = str (clize_flag name) in
-    let aka = match attr_expr attrs "aka" with
-    | None -> [%expr []]
-    | Some e -> e
-    in
-    let docv' = match attr_string_opt "docv" attrs with
-    | None -> docv_for ?list_sep typ
-    | Some d -> str d in
-    let doc' = attr_string_opt "ocaml.doc" attrs |> expr_opt ~kind:str  in
-    let docs' = attr_string_opt "docs" attrs |> expr_opt ~kind:str in
-    let names = match pos with
-    | None -> [%expr [%e name'] :: [%e aka]]
-    | Some _ -> [%expr []]
-    in
-    [%expr info ?env:[%e env]
-        ?docs:[%e docs'] ?doc:[%e doc'] ~docv:[%e docv'] [%e names]]
+  let name' = match attr_string_opt "name" attrs with
+  | None -> str (clize_flag name)
+  | Some s -> str (clize_flag s)
+  in
+  let aka = match attr_expr attrs "aka" with
+  | None -> [%expr []]
+  | Some e -> e
+  in
+  let docv' = match attr_string_opt "docv" attrs with
+  | None -> docv_for ?list_sep typ
+  | Some d -> str d in
+  let doc' = attr_string_opt "ocaml.doc" attrs |> expr_opt ~kind:str  in
+  let docs' = attr_string_opt "docs" attrs |> expr_opt ~kind:str in
+  let names = match pos with
+  | None -> [%expr [%e name'] :: [%e aka]]
+  | Some _ -> [%expr []]
+  in
+  [%expr info ?env:[%e env]
+      ?docs:[%e docs'] ?doc:[%e doc'] ~docv:[%e docv'] [%e names]]
 
 
 let rec ser_expr_of_typ typ attrs name =

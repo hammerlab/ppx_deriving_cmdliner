@@ -230,6 +230,22 @@ let terms () =
     ~argv ~expected ~pprinter:pp_terms_types
 
 
+type misc_types = {
+  a1: string; [@name "renamed"]
+} [@@deriving cmdliner,show]
+let miscs () =
+  let argv = [|
+    "cmd";
+    "--renamed"; "test"
+  |] in
+  let expected = {
+    a1 = "test";
+  } in
+  cmd_test_case "expected `@name` to work"
+    ~term:(misc_types_cmdliner_term ())
+    ~argv ~expected ~pprinter:pp_misc_types
+
+
 let test_set = [
   "simple types" , `Quick, simple;
   "default types" , `Quick, defaults;
@@ -240,6 +256,7 @@ let test_set = [
   "custom types", `Quick, customs;
   "opt_all type", `Quick, opt_all;
   "term type", `Quick, terms;
+  "misc types", `Quick, miscs;
 ]
 
 let () =

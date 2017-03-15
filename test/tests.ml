@@ -232,16 +232,23 @@ let terms () =
 
 type misc_types = {
   a1: string; [@name "renamed"]
+  b1: bool; [@enum ["true", true; "false", false]]
+  c1: bool; [@enum ["true", true; "false", false]] [@default true]
+  d1: bool; [@enum ["true", true; "false", false]] [@default true]
 } [@@deriving cmdliner,show]
 let miscs () =
   let argv = [|
     "cmd";
-    "--renamed"; "test"
+    "--renamed"; "test";
+    "--b1"; "true"; "--d1"; "false"
   |] in
   let expected = {
     a1 = "test";
+    b1 = true;
+    c1 = true;
+    d1 = false;
   } in
-  cmd_test_case "expected `@name` to work"
+  cmd_test_case "expected `@name` & enum bools to work"
     ~term:(misc_types_cmdliner_term ())
     ~argv ~expected ~pprinter:pp_misc_types
 

@@ -65,7 +65,8 @@ let clize_flag =  String.map (fun c -> if c = '_' then '-' else c)
 let parse_options options =
   options |> List.iter (fun (name, expr) ->
     match name with
-    | _ -> raise_errorf ~loc:expr.pexp_loc "%s does not support option %s" deriver name)
+    | _ -> raise_errorf ~loc:expr.pexp_loc "%s does not support option %s"
+             deriver name)
 
 
 let rec converter_for ?list_sep ?enum typ =
@@ -154,8 +155,9 @@ let rec ser_expr_of_typ typ attrs name =
         (Cmdliner.Arg.env_var ?docs:[%e docs'] ?doc:[%e doc'] [%e str e])]
   in
   let list_sep = attr_char_opt "sep" attrs in
+  let enum = attr_expr attrs "enum" in
   let conv' = match attr_expr attrs "conv" with
-  | None -> converter_for ?list_sep ?enum:(attr_expr attrs "enum") typ
+  | None -> converter_for ?list_sep ?enum typ
   | Some conv -> [%expr Cmdliner.Arg.conv [%e conv]]
   in
   let pos = attr_int_opt "pos" attrs in
@@ -164,14 +166,30 @@ let rec ser_expr_of_typ typ attrs name =
   | _ when value_attr_exists attrs "term" ->
     attr_expr_exn attrs "term"
   | [%type: bool] ->
-    begin match default' with
-    | None | Some [%expr false] -> [%expr
-      Cmdliner.Arg.(value & flag & [%e info'])]
-    | Some [%expr true] -> [%expr
-      Cmdliner.Term.app
-        (Cmdliner.Term.const (fun b -> (not b)))
-        Cmdliner.Arg.(value & flag & [%e info'])]
-    | Some _ -> failwith "Default of a `bool` must be a bool."
+    begin match enum with
+    | None ->  begin match default' with
+      | None | Some [%expr false] ->
+        [%expr Cmdliner.Arg.(value & flag & [%e info'])]
+      | Some [%expr true] -> [%expr
+        Cmdliner.Term.app
+          (Cmdliner.Term.const (fun b -> (not b)))
+          Cmdliner.Arg.(value & flag & [%e info'])]
+      | Some _ -> failwith "Default of a `bool` must be a bool."
+      end
+    | Some _ ->
+      let t = match pos with
+      | None -> [%expr Cmdliner.Arg.opt]
+      | Some i -> [%expr Cmdliner.Arg.pos [%e int i]]
+      in
+      begin match default' with
+      | None ->
+        [%expr Cmdliner.Arg.(required & [%e t] (some [%e conv']) None & [%e info'])]
+      | Some [%expr false] ->
+        [%expr Cmdliner.Arg.(value & [%e t] [%e conv'] false & [%e info'])]
+      | Some [%expr true] ->
+        [%expr Cmdliner.Arg.(value & [%e t] [%e conv'] true & [%e info'])]
+      | Some _ -> failwith "Default of a `bool` must be a bool."
+      end
     end
   | [%type: [%t? typ] option] ->
     begin match default' with

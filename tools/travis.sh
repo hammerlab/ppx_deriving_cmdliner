@@ -41,11 +41,11 @@ eval `opam config env`
 
 opam update
 
-opam install -y ppx_deriving ppx_driver ppx_deriving.show ppx_deriving.main ppx_tools.metaquot ppx_deriving.api ppx_deriving.runtime alcotest
+opam install -y ppx_deriving ppx_driver ppx_tools alcotest
 
 opam pin add ppx_deriving_cmdliner --yes .
 opam install ppx_deriving_cmdliner
 
 make
-make test
+make tests
 

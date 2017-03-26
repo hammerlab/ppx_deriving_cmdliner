@@ -235,18 +235,27 @@ type misc_types = {
   b1: bool; [@enum ["true", true; "false", false]]
   c1: bool; [@enum ["true", true; "false", false]] [@default true]
   d1: bool; [@enum ["true", true; "false", false]] [@default true]
+  e1: string * string;
+  f1: string * string * int;
+  g1: float * string * int * char;
 } [@@deriving cmdliner,show]
 let miscs () =
   let argv = [|
     "cmd";
     "--renamed"; "test";
-    "--b1"; "true"; "--d1"; "false"
+    "--b1"; "true"; "--d1"; "false";
+    "--e1"; "a,b";
+    "--f1"; "a,b,1";
+    "--g1"; "1.1,bar,100,c";
   |] in
   let expected = {
     a1 = "test";
     b1 = true;
     c1 = true;
     d1 = false;
+    e1 = ("a", "b");
+    f1 = ("a", "b", 1);
+    g1 = (1.1, "bar", 100, 'c');
   } in
   cmd_test_case "expected `@name` & enum bools to work"
     ~term:(misc_types_cmdliner_term ())

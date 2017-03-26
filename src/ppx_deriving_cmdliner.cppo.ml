@@ -78,6 +78,21 @@ let rec converter_for ?list_sep ?enum typ =
     [%expr (list ?sep:[%e list_sep'] [%e converter_for ?enum typ])]
   | _, [%type: [%t? typ] array] ->
     [%expr (array ?sep:[%e list_sep'] [%e converter_for ?enum typ])]
+  | _, [%type: [%t? typ1] * [%t? typ2]] ->
+    [%expr (t2 ?sep:[%e list_sep']
+              [%e converter_for ?enum typ1]
+              [%e converter_for ?enum typ2])]
+  | _, [%type: [%t? typ1] * [%t? typ2] * [%t? typ3]] ->
+    [%expr (t3 ?sep:[%e list_sep']
+              [%e converter_for ?enum typ1]
+              [%e converter_for ?enum typ2]
+              [%e converter_for ?enum typ3])]
+  | _, [%type: [%t? typ1] * [%t? typ2] * [%t? typ3] * [%t? typ4]] ->
+    [%expr (t4 ?sep:[%e list_sep']
+              [%e converter_for ?enum typ1]
+              [%e converter_for ?enum typ2]
+              [%e converter_for ?enum typ3]
+              [%e converter_for ?enum typ4])]
   | Some xs, _ -> [%expr Cmdliner.Arg.enum [%e xs]]
   | _, [%type: int] -> [%expr Cmdliner.Arg.int]
   | _, [%type: int32] | _, [%type: Int32.t] -> [%expr Cmdliner.Arg.int32]
@@ -104,22 +119,34 @@ let rec converter_for ?list_sep ?enum typ =
 
 
 let rec docv_for ?list_sep typ =
+  let s = (match list_sep with None -> ',' | Some s -> s) in
   match typ with
-  | [%type: int] -> [%expr "INT"]
-  | [%type: int32] | [%type: Int32.t] -> [%expr "INT32"]
-  | [%type: int64] | [%type: Int64.t] -> [%expr "INT64"]
-  | [%type: nativeint] | [%type: Nativeint.t] -> [%expr "NATIVEINT"]
-  | [%type: float] -> [%expr "FLOAT"]
-  | [%type: bool] -> [%expr "BOOL"]
-  | [%type: string] -> [%expr "STRING"]
-  | [%type: char] -> [%expr "CHAR"]
-  | [%type: bytes] -> [%expr "BYTES"]
+  | [%type: int] -> "INT"
+  | [%type: int32] | [%type: Int32.t] -> "INT32"
+  | [%type: int64] | [%type: Int64.t] -> "INT64"
+  | [%type: nativeint] | [%type: Nativeint.t] -> "NATIVEINT"
+  | [%type: float] -> "FLOAT"
+  | [%type: bool] -> "BOOL"
+  | [%type: string] -> "STRING"
+  | [%type: char] -> "CHAR"
+  | [%type: bytes] -> "BYTES"
   | [%type: [%t? typ] option] -> docv_for typ
   | [%type: [%t? typ] list] | [%type: [%t? typ] array] ->
-    [%expr Printf.sprintf "%s%c..."
-        [%e docv_for typ]
-        [%e char (match list_sep with None -> ',' | Some s -> s)]]
-  | _ -> [%expr "VAR"]
+    Printf.sprintf "%s%c..." (docv_for typ) s
+  | [%type: [%t? typ1] * [%t? typ2]] ->
+    Printf.sprintf "%s%c%s"
+      (docv_for typ1) s (docv_for typ2)
+  | [%type: [%t? typ1] * [%t? typ2] * [%t? typ3]] ->
+    Printf.sprintf "%s%c%s%c%s"
+      (docv_for typ1) s (docv_for typ2) s (docv_for typ3)
+  | [%type: [%t? typ1] * [%t? typ2] * [%t? typ3] * [%t? typ4]] ->
+    Printf.sprintf "%s%c%s%c%s%c%s"
+      (docv_for typ1) s
+      (docv_for typ2) s
+      (docv_for typ3) s
+      (docv_for typ4)
+  | _ -> "VAR"
+
 
 
 let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
@@ -132,7 +159,7 @@ let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
   | Some e -> e
   in
   let docv' = match attr_string_opt "docv" attrs with
-  | None -> docv_for ?list_sep typ
+  | None -> str (docv_for ?list_sep typ)
   | Some d -> str d in
   let doc' = attr_string_opt "ocaml.doc" attrs |> expr_opt ~kind:str  in
   let docs' = attr_string_opt "docs" attrs |> expr_opt ~kind:str in

@@ -24,9 +24,4 @@ tests:
 	  -pkgs $(TEST_PACKAGES) tests.native
 	./tests.native
 
-test:
-	ocamlbuild -cflag -dsource -use-ocamlfind \
-	  -I _build/ -I _build/src/ \
-	  -pkgs $(TEST_PACKAGES)  test.native
-
 .PHONY: release test tests

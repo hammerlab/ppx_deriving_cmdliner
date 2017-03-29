@@ -75,20 +75,20 @@ let rec converter_for ?list_sep ?enum typ =
   | Some s -> [%expr Some ([%e char s])] in
   match enum, typ with
   | _, [%type: [%t? typ] list] ->
-    [%expr (list ?sep:[%e list_sep'] [%e converter_for ?enum typ])]
+    [%expr (Cmdliner.Arg.list ?sep:[%e list_sep'] [%e converter_for ?enum typ])]
   | _, [%type: [%t? typ] array] ->
-    [%expr (array ?sep:[%e list_sep'] [%e converter_for ?enum typ])]
+    [%expr (Cmdliner.Arg.array ?sep:[%e list_sep'] [%e converter_for ?enum typ])]
   | _, [%type: [%t? typ1] * [%t? typ2]] ->
-    [%expr (t2 ?sep:[%e list_sep']
+    [%expr (Cmdliner.Arg.t2 ?sep:[%e list_sep']
               [%e converter_for ?enum typ1]
               [%e converter_for ?enum typ2])]
   | _, [%type: [%t? typ1] * [%t? typ2] * [%t? typ3]] ->
-    [%expr (t3 ?sep:[%e list_sep']
+    [%expr (Cmdliner.Arg.t3 ?sep:[%e list_sep']
               [%e converter_for ?enum typ1]
               [%e converter_for ?enum typ2]
               [%e converter_for ?enum typ3])]
   | _, [%type: [%t? typ1] * [%t? typ2] * [%t? typ3] * [%t? typ4]] ->
-    [%expr (t4 ?sep:[%e list_sep']
+    [%expr (Cmdliner.Arg.t4 ?sep:[%e list_sep']
               [%e converter_for ?enum typ1]
               [%e converter_for ?enum typ2]
               [%e converter_for ?enum typ3]

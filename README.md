@@ -1,6 +1,6 @@
 # [@@deriving cmdliner]
 
-_deriving Cmdliner_ is the easiest way to get a command line interface. 
+_deriving Cmdliner_ is the easiest way to get a command line interface.
 
 It is also a [ppx_deriving](https://github.com/whitequark/ppx_deriving) plugin
 that generates a [Cmdliner](https://github.com/dbuenzli/cmdliner) `Term` for a
@@ -97,10 +97,10 @@ type custom_types = {
 } [@@deriving cmdliner]
 ```
 
-In short, a value of type `string -> ('a, [ ``` `Msg ``` of string ])
-Result.result) * 'a printer` must be provided (or will be looked for under the
-name `cmdliner_converter` if the type is `t`, else
-`type_name_cmdliner_converter`) for the given type.
+In short, a value of type ``string -> ('a, [ `Msg of string ]) Result.result) *
+'a printer`` must be provided (or will be looked for under the name
+`cmdliner_converter` if the type is `t`, else `type_name_cmdliner_converter`)
+for the given type.
 
 ## Attributes supported
 

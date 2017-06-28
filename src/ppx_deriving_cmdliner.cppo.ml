@@ -39,13 +39,15 @@ let attr_char_opt name attrs =
 
 let attr_string name default attrs =
   match Ppx_deriving.attr ~deriver name attrs |>
-        Ppx_deriving.Arg.(get_attr ~deriver string)with
-  | Some x -> x
+        Ppx_deriving.Arg.(get_attr ~deriver string) with
+  | Some x -> String.trim x
   | None   -> default
 
 let attr_string_opt name attrs =
-  Ppx_deriving.attr ~deriver name attrs |>
-  Ppx_deriving.Arg.(get_attr ~deriver string)
+  match Ppx_deriving.attr ~deriver name attrs |>
+        Ppx_deriving.Arg.(get_attr ~deriver string) with
+  | Some x -> Some (String.trim x)
+  | None   -> None
 
 let attr_int_opt name attrs =
   Ppx_deriving.attr ~deriver name attrs |>
@@ -107,7 +109,8 @@ let rec converter_for ?list_sep ?enum typ =
   | _, [%type: bytes] ->
     [%expr Cmdliner.Arg.conv
         ((fun s -> Result.Ok (Bytes.of_string s)),
-         (fun fmt b -> Format.fprintf fmt "%s" (Bytes.to_string b)))]
+         (fun fmt b -> Format.fprintf fmt "[@%s@]@." (Bytes.to_string b)))]
+         (* ^ Print inside a pretty box to ignore raw new lines in comments. *)
   | _, { ptyp_desc = Ptyp_constr ({ txt = lid }, args) } ->
     let fn_name = Ppx_deriving.mangle_lid (`Suffix "cmdliner_converter") lid in
     [%expr Cmdliner.Arg.conv [%e Exp.ident (mknoloc fn_name)]]

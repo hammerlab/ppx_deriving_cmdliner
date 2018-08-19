@@ -6,11 +6,9 @@ env:
   global:
     - TESTS=true
   matrix:
-    - OCAML_VERSION=4.03 PACKAGE="ppx_deriving_cmdliner"
     - OCAML_VERSION=4.04 PACKAGE="ppx_deriving_cmdliner"
     - OCAML_VERSION=4.05 PACKAGE="ppx_deriving_cmdliner"
     - OCAML_VERSION=4.06 PACKAGE="ppx_deriving_cmdliner"
-    - OCAML_VERSION=4.07 PACKAGE="ppx_deriving_cmdliner"
 os:
 - linux
 - osx

@@ -3,6 +3,7 @@
 (executable
  ((name test_ppx_deriving_cmdliner)
   (libraries (alcotest result))
+  (flags (:standard -w -27-39))
   (preprocess (pps (ppx_deriving.show ppx_deriving_cmdliner)))))
 
 (alias

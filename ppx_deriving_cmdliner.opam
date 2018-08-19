@@ -20,7 +20,9 @@ depends: [
   "cmdliner"     {>= "1.0.0"}
   "result"
   "ppx_deriving" {>= "4.0" & < "5.0"}
+  "dune"         {build}
   "ocamlfind"    {build}
+  "ppxfind"      {build}
   "cppo"         {build}
   "alcotest"     {test}
   "ppx_import"   {test & >= "1.1"}

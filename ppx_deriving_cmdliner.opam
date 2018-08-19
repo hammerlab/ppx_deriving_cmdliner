@@ -9,7 +9,7 @@ doc: "http://hammerlab.github.io/ppx_deriving_cmdliner"
 bug-reports: "https://github.com/hammerlab/ppx_deriving_cmdliner/issues"
 dev-repo: "https://github.com/hammerlab/ppx_deriving_cmdliner.git"
 tags: [ "syntax" "cli" ]
-available: [ ocaml-version > 4.03 ]
+available: [ ocaml-version > "4.03" ]
 build: [
   ["jbuilder" "subst" "-n" name] {pinned}
   ["jbuilder" "build" "-p" name "-j" jobs]

@@ -1,9 +1,15 @@
 language: c
-script: bash -e ./tools/travis.sh
+sudo: true
+install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
+env:
+  global:
+    - TESTS=true
+  matrix:
+    - OCAML_VERSION=4.04 PACKAGE="ppx_deriving_cmdliner"
+    - OCAML_VERSION=4.05 PACKAGE="ppx_deriving_cmdliner"
+    - OCAML_VERSION=4.06 PACKAGE="ppx_deriving_cmdliner"
 os:
 - linux
 - osx
-sudo: true
-env:
-  - OCAML_VERSION=4.03.0 OPAM_VERSION=1.2.1
-  - OCAML_VERSION=4.04.0 OPAM_VERSION=1.2.1
+

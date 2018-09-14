@@ -1,0 +1,12 @@
+(jbuild_version 1)
+
+(executable
+ ((name test_ppx_deriving_cmdliner)
+  (libraries (alcotest result))
+  (flags (:standard -w -27-39))
+  (preprocess (pps (ppx_deriving.show ppx_deriving_cmdliner)))))
+
+(alias
+ ((name runtest)
+  (deps (test_ppx_deriving_cmdliner.exe))
+(action (run ${<}))))

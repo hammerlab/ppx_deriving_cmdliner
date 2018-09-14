@@ -9,16 +9,21 @@ doc: "http://hammerlab.github.io/ppx_deriving_cmdliner"
 bug-reports: "https://github.com/hammerlab/ppx_deriving_cmdliner/issues"
 dev-repo: "https://github.com/hammerlab/ppx_deriving_cmdliner.git"
 tags: [ "syntax" "cli" ]
-substs: [ "pkg/META" ]
+available: [ ocaml-version > "4.03" ]
 build: [
-  "ocaml" "pkg/build.ml" "native=%{ocaml-native}%"
-                         "native-dynlink=%{ocaml-native-dynlink}%"
+  ["jbuilder" "subst" "-n" name] {pinned}
+  ["jbuilder" "build" "-p" name "-j" jobs]
+]
+build-test: [
+  ["jbuilder" "runtest" "-p" name "-j" jobs]
 ]
 depends: [
   "cmdliner"     {>= "1.0.0"}
   "result"
   "ppx_deriving" {>= "4.0" & < "5.0"}
+  "dune"         {build}
   "ocamlfind"    {build}
+  "ppxfind"      {build}
   "cppo"         {build}
   "alcotest"     {test}
   "ppx_import"   {test & >= "1.1"}

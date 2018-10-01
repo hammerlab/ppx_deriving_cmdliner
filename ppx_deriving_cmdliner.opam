@@ -18,7 +18,7 @@ build: [
   ["jbuilder" "subst" "-n" name] {pinned}
   ["jbuilder" "build" "-p" name "-j" jobs]
 ]
-build-test: [
+run-test: [
   ["jbuilder" "runtest" "-p" name "-j" jobs]
 ]
 depends: [
@@ -30,8 +30,8 @@ depends: [
   "ocamlfind"    {build}
   "ppxfind"      {build}
   "cppo"         {build}
-  "alcotest"     {test}
-  "ppx_import"   {test & >= "1.1"}
+  "alcotest"     {with-test}
+  "ppx_import"   {with-test & >= "1.1"}
 ]
 synopsis: "Cmdliner.Term.t generator"
 description: """

@@ -363,6 +363,8 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
     let var = pvar (Ppx_deriving.mangle_type_decl (`Suffix "cmdliner_term") type_decl) in
     ([],
      [Vb.mk (Pat.constraint_ var poly_type)
+        (* The let binding sometimes ends up with a useless `rec`: *)
+        ~attrs:[Ppx_deriving.attr_warning [%expr "-39"]]
         (polymorphize [%expr ([%e wrap_runtime serializer])])])
 
 

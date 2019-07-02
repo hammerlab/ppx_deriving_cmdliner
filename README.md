@@ -1,6 +1,6 @@
 # [@@deriving cmdliner]
 
-_deriving Cmdliner_ is the easiest way to get a command line interface.
+_deriving Cmdliner_ is a simple way to get a command line interface.
 
 It is also a [ppx_deriving](https://github.com/whitequark/ppx_deriving) plugin
 that generates a [Cmdliner](https://github.com/dbuenzli/cmdliner) `Term` for a

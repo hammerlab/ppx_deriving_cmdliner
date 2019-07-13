@@ -15,11 +15,11 @@ license: "MIT"
 version: "0.4.2-dev"
 tags: ["syntax" "cli"]
 build: [
-  ["jbuilder" "subst" "-n" name] {pinned}
-  ["jbuilder" "build" "-p" name "-j" jobs]
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
 ]
 run-test: [
-  ["jbuilder" "runtest" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs]
 ]
 depends: [
   "ocaml" {>= "4.03"}

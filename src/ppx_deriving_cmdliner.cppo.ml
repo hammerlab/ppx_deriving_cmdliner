@@ -113,7 +113,7 @@ let rec converter_for ?list_sep ?enum typ =
          (* ^ Print inside a pretty box to ignore raw new lines in comments. *)
   | _, { ptyp_desc = Ptyp_constr ({ txt = lid }, args) } ->
     let fn_name = Ppx_deriving.mangle_lid (`Suffix "cmdliner_converter") lid in
-    [%expr Cmdliner.Arg.conv [%e Exp.ident (mknoloc fn_name)]]
+    [%expr [%e Exp.ident (mknoloc fn_name)]]
   | _, _ ->
     failwith
       (Printf.sprintf
@@ -188,7 +188,7 @@ let rec ser_expr_of_typ typ attrs name =
   let enum = attr_expr attrs "enum" in
   let conv' = match attr_expr attrs "conv" with
   | None -> converter_for ?list_sep ?enum typ
-  | Some conv -> [%expr Cmdliner.Arg.conv [%e conv]]
+  | Some conv -> conv
   in
   let pos = attr_int_opt "pos" attrs in
   let info' = info_for ?pos ~attrs ~name ?list_sep ~typ ~env:env' in
@@ -231,7 +231,7 @@ let rec ser_expr_of_typ typ attrs name =
     when key_attr_exists attrs "opt_all" ->
     let conv' = match attr_expr attrs "conv" with
     | None -> converter_for ?list_sep ?enum:(attr_expr attrs "enum") typ
-    | Some conv -> [%expr Cmdliner.Arg.conv [%e conv]]
+    | Some conv -> conv
     in
     begin match default' with
     | None -> [%expr

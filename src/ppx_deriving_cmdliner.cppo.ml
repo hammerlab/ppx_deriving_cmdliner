@@ -286,7 +286,7 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
       let ser = ser_expr_of_typ manifest [] "" in
       let lid = Ppx_deriving.mangle_lid (`PrefixSuffix ("M", "cmdliner_term")) lid in
       let orig_mod = Mod.ident (mknoloc lid) in
-      ([Str.module_ (Mb.mk (mknoloc mod_name) orig_mod)],
+      ([Str.module_ (Mb.mk (mknoloc (Some mod_name)) orig_mod)],
        [Vb.mk (pvar to_cmdliner_name)
               (polymorphize [%expr ([%e ser] : unit -> [%t typ] Cmdliner.Term.t)])])
     | Some _ ->
@@ -318,7 +318,7 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
       let flid = lid (Printf.sprintf "%s.f" mod_name) in
       let field = Exp.field (Exp.ident flid) (flid) in
       let mod_ =
-        Str.module_ (Mb.mk (mknoloc mod_name)
+        Str.module_ (Mb.mk (mknoloc (Some mod_name))
                        (Mod.structure [
                            Str.type_ Type_Nonrecursive [typ];
           Str.value Nonrecursive [record];
@@ -448,7 +448,7 @@ let ser_sig_of_type ~options ~path type_decl =
     in
     let record = Val.mk (mknoloc "f") (Typ.constr (lid "t_cmdliner_term") []) in
     let mod_ =
-      Sig.module_ (Md.mk (mknoloc mod_name)
+      Sig.module_ (Md.mk (mknoloc (Some mod_name))
                   (Mty.signature [
                      Sig.type_ Type_Nonrecursive [typ];
         Sig.value record;

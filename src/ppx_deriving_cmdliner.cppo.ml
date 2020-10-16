@@ -12,6 +12,12 @@
 #define Mknoloc_option(x) (Some x)
 #endif
 
+#if OCAML_VERSION < (4, 11, 0)
+#define Pconst_string_argument(s, l) (s, None)
+#else
+#define Pconst_string_argument(s, l) (s, l, None)
+#endif
+
 open Longident
 open Location
 open Asttypes
@@ -307,7 +313,7 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
       let ty = Typ.poly poly_vars (polymorphize_ser [%type: unit -> [%t typ] Cmdliner.Term.t]) in
       let default_fun =
         let type_path = String.concat "." (path @ [type_decl.ptype_name.txt]) in
-        let e_type_path = Exp.constant (Pconst_string (type_path, None)) in
+        let e_type_path = Exp.constant (Pconst_string Pconst_string_argument(type_path, loc)) in
         [%expr fun _ ->
           invalid_arg ("ppx_deriving_cmdliner: Maybe a [@@deriving cmdliner] is missing when extending the type "^
                        [%e e_type_path])]

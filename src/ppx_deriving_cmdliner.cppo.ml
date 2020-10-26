@@ -6,6 +6,18 @@
 #define Type_Nonrecursive Nonrecursive
 #endif
 
+#if OCAML_VERSION < (4, 10, 0)
+#define Mknoloc_option(x) x
+#else
+#define Mknoloc_option(x) (Some x)
+#endif
+
+#if OCAML_VERSION < (4, 11, 0)
+#define Pconst_string_argument(s, l) (s, None)
+#else
+#define Pconst_string_argument(s, l) (s, l, None)
+#endif
+
 open Longident
 open Location
 open Asttypes
@@ -286,7 +298,7 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
       let ser = ser_expr_of_typ manifest [] "" in
       let lid = Ppx_deriving.mangle_lid (`PrefixSuffix ("M", "cmdliner_term")) lid in
       let orig_mod = Mod.ident (mknoloc lid) in
-      ([Str.module_ (Mb.mk (mknoloc mod_name) orig_mod)],
+      ([Str.module_ (Mb.mk (mknoloc Mknoloc_option(mod_name)) orig_mod)],
        [Vb.mk (pvar to_cmdliner_name)
               (polymorphize [%expr ([%e ser] : unit -> [%t typ] Cmdliner.Term.t)])])
     | Some _ ->
@@ -301,7 +313,7 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
       let ty = Typ.poly poly_vars (polymorphize_ser [%type: unit -> [%t typ] Cmdliner.Term.t]) in
       let default_fun =
         let type_path = String.concat "." (path @ [type_decl.ptype_name.txt]) in
-        let e_type_path = Exp.constant (Pconst_string (type_path, None)) in
+        let e_type_path = Exp.constant (Pconst_string Pconst_string_argument(type_path, loc)) in
         [%expr fun _ ->
           invalid_arg ("ppx_deriving_cmdliner: Maybe a [@@deriving cmdliner] is missing when extending the type "^
                        [%e e_type_path])]
@@ -318,7 +330,7 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
       let flid = lid (Printf.sprintf "%s.f" mod_name) in
       let field = Exp.field (Exp.ident flid) (flid) in
       let mod_ =
-        Str.module_ (Mb.mk (mknoloc mod_name)
+        Str.module_ (Mb.mk (mknoloc Mknoloc_option(mod_name))
                        (Mod.structure [
                            Str.type_ Type_Nonrecursive [typ];
           Str.value Nonrecursive [record];
@@ -448,7 +460,7 @@ let ser_sig_of_type ~options ~path type_decl =
     in
     let record = Val.mk (mknoloc "f") (Typ.constr (lid "t_cmdliner_term") []) in
     let mod_ =
-      Sig.module_ (Md.mk (mknoloc mod_name)
+      Sig.module_ (Md.mk (mknoloc Mknoloc_option(mod_name))
                   (Mty.signature [
                      Sig.type_ Type_Nonrecursive [typ];
         Sig.value record;

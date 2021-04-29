@@ -1,39 +1,34 @@
-#if OCAML_VERSION < (4, 03, 0)
-#define Type_Nonrecursive
-#define Pconst_string Const_string
-#define Pcstr_tuple(x) x
-#else
-#define Type_Nonrecursive Nonrecursive
-#endif
-
-#if OCAML_VERSION < (4, 10, 0)
-#define Mknoloc_option(x) x
-#else
-#define Mknoloc_option(x) (Some x)
-#endif
-
-#if OCAML_VERSION < (4, 11, 0)
-#define Pconst_string_argument(s, l) (s, None)
-#else
-#define Pconst_string_argument(s, l) (s, l, None)
-#endif
-
-open Longident
-open Location
-open Asttypes
-open Parsetree
+open Ppxlib
 open Ast_helper
-open Ast_convenience
+
+module Ast_builder_default_loc = struct
+  include Ppx_deriving.Ast_convenience
+
+  let gen_def_loc f x =
+    let loc = !Ast_helper.default_loc in
+    f ~loc x
+
+  let lid = gen_def_loc Ast_builder.Default.Located.lident
+  let list = gen_def_loc Ast_builder.Default.elist
+  let pstr = gen_def_loc Ast_builder.Default.pstring
+  let plist = gen_def_loc Ast_builder.Default.plist
+  let lam = gen_def_loc Ast_builder.Default.pexp_fun Nolabel None
+end
+
+open Ast_builder_default_loc
 
 let deriver = "cmdliner"
 let raise_errorf = Ppx_deriving.raise_errorf
 
 let argn = Printf.sprintf "arg%d"
 
-let expr_opt ~kind =
+let char c =
+  Ast_helper.Exp.constant (Ast_helper.Const.char c)
+
+let expr_opt ~loc ~kind =
   function
   | None -> [%expr None]
-  | Some x -> [%expr Some [%e kind x]]
+  | Some x -> [%expr (Some [%e kind x])]
 
 let key_attr_exists attrs name =
   Ppx_deriving.attr ~deriver name attrs |>
@@ -84,9 +79,8 @@ let parse_options options =
 
 
 let rec converter_for ?list_sep ?enum typ =
-  let list_sep' = match list_sep with
-  | None -> [%expr None]
-  | Some s -> [%expr Some ([%e char s])] in
+  let loc = typ.ptyp_loc in
+  let list_sep' = expr_opt ~loc ~kind:char list_sep in
   match enum, typ with
   | _, [%type: [%t? typ] list] ->
     [%expr (Cmdliner.Arg.list ?sep:[%e list_sep'] [%e converter_for ?enum typ])]
@@ -134,6 +128,7 @@ let rec converter_for ?list_sep ?enum typ =
 
 
 let rec docv_for ?list_sep typ =
+  (* let loc = typ.ptyp_loc in *)
   let s = (match list_sep with None -> ',' | Some s -> s) in
   match typ with
   | [%type: int] -> "INT"
@@ -165,6 +160,7 @@ let rec docv_for ?list_sep typ =
 
 
 let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
+  let loc = typ.ptyp_loc in
   let name' = match attr_string_opt "name" attrs with
   | None -> str (clize_flag name)
   | Some s -> str (clize_flag s)
@@ -176,8 +172,8 @@ let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
   let docv' = match attr_string_opt "docv" attrs with
   | None -> str (docv_for ?list_sep typ)
   | Some d -> str d in
-  let doc' = attr_string_opt "ocaml.doc" attrs |> expr_opt ~kind:str  in
-  let docs' = attr_string_opt "docs" attrs |> expr_opt ~kind:str in
+  let doc' = attr_string_opt "ocaml.doc" attrs |> expr_opt ~loc ~kind:str  in
+  let docs' = attr_string_opt "docs" attrs |> expr_opt ~loc ~kind:str in
   let names = match pos with
   | None -> [%expr [%e name'] :: [%e aka]]
   | Some _ -> [%expr []]
@@ -187,10 +183,11 @@ let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
 
 
 let rec ser_expr_of_typ typ attrs name =
+  let loc = typ.ptyp_loc in
   let default' = attr_expr attrs "default" in
   let env' =
-    let docs' = attr_string_opt "env.docs" attrs |> expr_opt ~kind:str in
-    let doc' = attr_string_opt "env.doc" attrs |> expr_opt ~kind:str in
+    let docs' = attr_string_opt "env.docs" attrs |> expr_opt ~loc ~kind:str in
+    let doc' = attr_string_opt "env.doc" attrs |> expr_opt ~loc ~kind:str in
     match attr_string_opt "env" attrs with
     | None -> [%expr None]
     | Some e -> [%expr Some
@@ -278,6 +275,7 @@ let ser_sig_of_type_ext ~options ~path type_ext = []
 let ser_type_of_decl ~options ~path type_decl =
   ignore (parse_options options);
   let typ = Ppx_deriving.core_type_of_type_decl type_decl in
+  let loc = typ.ptyp_loc in
   let polymorphize = Ppx_deriving.poly_arrow_of_type_decl
       (fun var -> [%type: unit -> [%t var] Cmdliner.Term.t ]) type_decl in
   polymorphize [%type: unit -> [%t typ] Cmdliner.Term.t]
@@ -298,7 +296,7 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
       let ser = ser_expr_of_typ manifest [] "" in
       let lid = Ppx_deriving.mangle_lid (`PrefixSuffix ("M", "cmdliner_term")) lid in
       let orig_mod = Mod.ident (mknoloc lid) in
-      ([Str.module_ (Mb.mk (mknoloc Mknoloc_option(mod_name)) orig_mod)],
+      ([Str.module_ (Mb.mk (mknoloc (Some mod_name)) orig_mod)],
        [Vb.mk (pvar to_cmdliner_name)
               (polymorphize [%expr ([%e ser] : unit -> [%t typ] Cmdliner.Term.t)])])
     | Some _ ->
@@ -313,7 +311,7 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
       let ty = Typ.poly poly_vars (polymorphize_ser [%type: unit -> [%t typ] Cmdliner.Term.t]) in
       let default_fun =
         let type_path = String.concat "." (path @ [type_decl.ptype_name.txt]) in
-        let e_type_path = Exp.constant (Pconst_string Pconst_string_argument(type_path, loc)) in
+        let e_type_path = Exp.constant (Pconst_string (type_path, loc, None)) in
         [%expr fun _ ->
           invalid_arg ("ppx_deriving_cmdliner: Maybe a [@@deriving cmdliner] is missing when extending the type "^
                        [%e e_type_path])]
@@ -330,9 +328,9 @@ let ser_str_of_type ~options ~path ({ ptype_loc = loc } as type_decl) =
       let flid = lid (Printf.sprintf "%s.f" mod_name) in
       let field = Exp.field (Exp.ident flid) (flid) in
       let mod_ =
-        Str.module_ (Mb.mk (mknoloc Mknoloc_option(mod_name))
+        Str.module_ (Mb.mk (mknoloc (Some mod_name))
                        (Mod.structure [
-                           Str.type_ Type_Nonrecursive [typ];
+                           Str.type_ Nonrecursive [typ];
           Str.value Nonrecursive [record];
         ]))
       in
@@ -408,10 +406,8 @@ let ser_str_of_type_ext ~options ~path ({ ptyext_path = { loc }} as type_ext) =
               Exp.case
                 (pconstr name' (List.mapi (fun i _ -> pvar (argn i)) args))
                 [%expr `List ((`String [%e str json_name]) :: [%e list arg_exprs])]
-#if OCAML_VERSION >= (4, 03, 0)
             | Pcstr_record _ ->
               raise_errorf ~loc "%s: record variants are not supported" deriver
-#endif
           in
           case :: acc_cases) type_ext.ptyext_constructors []
     in
@@ -426,7 +422,7 @@ let ser_str_of_type_ext ~options ~path ({ ptyext_path = { loc }} as type_ext) =
       Ppx_deriving.mangle_lid
         (`PrefixSuffix ("M", "cmdliner_term")) type_ext.ptyext_path.txt
     in
-    String.concat "." (Longident.flatten mod_lid)
+    String.concat "." (Longident.flatten_exn mod_lid)
   in
   let polymorphize = Ppx_deriving.poly_fun_of_type_ext type_ext in
   let serializer = polymorphize (wrap_runtime serializer) in
@@ -438,6 +434,7 @@ let ser_str_of_type_ext ~options ~path ({ ptyext_path = { loc }} as type_ext) =
 
 
 let ser_sig_of_type ~options ~path type_decl =
+  let loc = type_decl.ptype_loc in 
   let to_cmdliner =
     Sig.value (Val.mk (mknoloc (Ppx_deriving.mangle_type_decl (`Suffix "cmdliner_term") type_decl))
                       (ser_type_of_decl ~options ~path type_decl))
@@ -460,9 +457,9 @@ let ser_sig_of_type ~options ~path type_decl =
     in
     let record = Val.mk (mknoloc "f") (Typ.constr (lid "t_cmdliner_term") []) in
     let mod_ =
-      Sig.module_ (Md.mk (mknoloc Mknoloc_option(mod_name))
+      Sig.module_ (Md.mk (mknoloc (Some mod_name))
                   (Mty.signature [
-                     Sig.type_ Type_Nonrecursive [typ];
+                     Sig.type_ Nonrecursive [typ];
         Sig.value record;
       ]))
     in

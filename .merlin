@@ -1,4 +1,0 @@
-B _build/**
-S _src/**
-
-PKG compiler-libs.common ppx_deriving.api ppx_import result ppx_tools.metaquot cmdliner alcotest

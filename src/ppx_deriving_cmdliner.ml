@@ -128,7 +128,6 @@ let rec converter_for ?list_sep ?enum typ =
 
 
 let rec docv_for ?list_sep typ =
-  (* let loc = typ.ptyp_loc in *)
   let s = (match list_sep with None -> ',' | Some s -> s) in
   match typ with
   | [%type: int] -> "INT"

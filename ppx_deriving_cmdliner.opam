@@ -29,7 +29,6 @@ depends: [
   "dune"
   "ppxlib"       {>= "0.14.0"}
   "alcotest"     {with-test}
-  "ppx_import"   {with-test & >= "1.1"}
 ]
 synopsis: "Cmdliner.Term.t generator"
 description: """

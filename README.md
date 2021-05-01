@@ -6,6 +6,8 @@ It is also a [ppx_deriving](https://github.com/whitequark/ppx_deriving) plugin
 that generates a [Cmdliner](https://github.com/dbuenzli/cmdliner) `Term` for a
 given type.
 
+![example workflow](https://github.com/hammerlab/ppx_deriving_cmdliner/actions/workflows/workflow.yml/badge.svg)
+
 ## Example
 
 

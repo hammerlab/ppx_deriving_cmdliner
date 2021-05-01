@@ -15,31 +15,23 @@ license: "MIT"
 version: "0.5.1-dev"
 tags: ["syntax" "cli"]
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   ["dune" "build" "-p" name "-j" jobs]
 ]
 run-test: [
   ["dune" "runtest" "-p" name "-j" jobs]
 ]
 depends: [
-  "ocaml" {>= "4.03"}
-  "cmdliner" {>= "1.0.0"}
+  "ocaml"        {>= "4.03"}
+  "cmdliner"     {>= "1.0.0"}
   "result"
-  "ppx_deriving" {>= "4.0" & < "5.0"}
-  "dune"         {build}
-  "ocamlfind"    {build}
-  "ppxfind"      {build}
-  "cppo"         {build}
+  "ppx_deriving" {>= "5.0"}
+  "dune"
+  "ppxlib"       {>= "0.14.0"}
   "alcotest"     {with-test}
-  "ppx_import"   {with-test & >= "1.1"}
 ]
 synopsis: "Cmdliner.Term.t generator"
 description: """
 ppx_deriving_cmdliner is a ppx_deriving plugin that generates
 a Cmdliner Term.t for a record type."""
-#url {
-#  src:
-#    "https://github.com/hammerlab/ppx_deriving_cmdliner/archive/v0.4.0.tar.gz"
-#  checksum: "md5=24a29008621860e05544c931b11272de"
-#}
 

@@ -1,10 +1,3 @@
-(rule
- (deps
-  (:< ppx_deriving_cmdliner.cppo.ml))
- (targets ppx_deriving_cmdliner.ml)
- (action
-  (run %{bin:cppo} -V OCAML:%{ocaml_version} %{<} -o %{targets})))
-
 (library
  (name ppx_deriving_cmdliner_runtime)
  (public_name ppx_deriving_cmdliner.runtime)
@@ -17,10 +10,8 @@
  (public_name ppx_deriving_cmdliner)
  (synopsis "[@@deriving cmdliner]")
  (libraries ppx_deriving.api)
- (preprocess
-  (action
-   (run ppxfind -legacy ppx_tools.metaquot --as-pp %{input-file})))
- (ppx_runtime_libraries ppx_deriving_cmdliner_runtime cmdliner)
- (flags :standard -w -9-27-39)
+ (preprocess (pps ppxlib.metaquot))
+ (ppx_runtime_libraries ppx_deriving_cmdliner.runtime cmdliner)
+ (flags :standard -w -9-16-27-39)
  (modules ppx_deriving_cmdliner)
  (kind ppx_deriver))

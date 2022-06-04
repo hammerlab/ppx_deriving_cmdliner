@@ -23,7 +23,7 @@ run-test: [
   ["dune" "runtest" "-p" name "-j" jobs]
 ]
 depends: [
-  "ocaml"        {>= "4.05"}
+  "ocaml"        {>= "4.08"}
   "cmdliner"     {>= "1.0.0" & < "1.0.1"}
   "result"
   "ppx_deriving" {>= "5.0"}

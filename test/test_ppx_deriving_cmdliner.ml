@@ -238,4 +238,4 @@ let test_set =
   ; ("term type", `Quick, terms)
   ; ("misc types", `Quick, miscs) ]
 
-let () = Alcotest.run "Ppx_deriving_cmdliner" [("****", test_set)]
+let () = Alcotest.run "Ppx_deriving_cmdliner" [("test", test_set)]

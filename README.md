@@ -30,9 +30,10 @@ type params = {
 } [@@deriving cmdliner,show]
 
 let _ =
+  let info = Cmdliner.Cmd.info Sys.argv.(0) in
   let term = Cmdliner.Term.(const show_params $ params_cmdliner_term ()) in
-  let info = Cmdliner.Term.info Sys.argv.(0) in
-  Cmdliner.Term.eval (term, info)
+  let cmd = Cmdliner.Cmd.v info term in
+  Cmdliner.Cmd.eval cmd
 ```
 
 Which gives you a CLI like the following:

@@ -27,13 +27,16 @@ type params = {
 
   time_to_wait: float; [@default 0.]
   (** Just an example of another type *)
-} [@@deriving cmdliner,show]
+} [@@deriving cmdliner, show]
 
-let _ =
+let main () =
+  let f p = show_params p |> print_endline in
   let info = Cmdliner.Cmd.info Sys.argv.(0) in
-  let term = Cmdliner.Term.(const show_params $ params_cmdliner_term ()) in
+  let term = Cmdliner.Term.(const f $ params_cmdliner_term ()) in
   let cmd = Cmdliner.Cmd.v info term in
-  Cmdliner.Cmd.eval cmd
+  exit (Cmdliner.Cmd.eval cmd)
+
+let () = main ()
 ```
 
 Which gives you a CLI like the following:

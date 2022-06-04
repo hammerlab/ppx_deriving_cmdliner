@@ -1,16 +1,21 @@
 let cmd_test_case ~term ~argv ~expected ~pprinter what =
-  let info = Cmdliner.Term.info "cmd" in
+  let info = Cmdliner.Cmd.info "cmd" in
   Alcotest.(check (of_pp pprinter))
-    what expected
-    ( match Cmdliner.Term.eval ~argv (term, info) with
-    | `Error msg ->
-        assert false
-    | `Ok actual ->
-        actual
-    | `Version ->
-        assert false
-    | `Help ->
-        assert false )
+    what expected (
+      let cmd = Cmdliner.Cmd.v info term in
+      match Cmdliner.Cmd.eval_value ~argv cmd with
+      | Ok passing -> (
+        match passing with
+        | `Ok actual ->
+            actual
+        | `Version ->
+            assert false
+        | `Help ->
+            assert false
+      )
+      | Error _ ->
+          assert false
+    )
 
 type common_types =
   { a1: string

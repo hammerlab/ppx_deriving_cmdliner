@@ -8,6 +8,7 @@ authors: [
   "Armaël Guéneau <armael.gueneau@ens-lyon.fr>"
   "Tom Repetti <trepetti@cs.columbia.edu>"
   "Marcello Seri <m.seri@rug.nl>"
+  "Sonja Heinze <sonjaleaheinze@gmail.com>"
 ]
 homepage: "https://github.com/hammerlab/ppx_deriving_cmdliner"
 bug-reports: "https://github.com/hammerlab/ppx_deriving_cmdliner/issues"
@@ -24,7 +25,7 @@ run-test: [
 ]
 depends: [
   "ocaml"        {>= "4.08"}
-  "cmdliner"     {>= "1.0.0" & < "1.0.1"}
+  "cmdliner"     {>= "1.1.0"}
   "result"
   "ppx_deriving" {>= "5.0"}
   "dune"

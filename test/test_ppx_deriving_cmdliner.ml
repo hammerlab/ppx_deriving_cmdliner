@@ -231,6 +231,19 @@ let miscs () =
     ~term:(misc_types_cmdliner_term ())
     ~argv ~expected ~pprinter:pp_misc_types
 
+type pos_all = {
+  files: string list [@pos_all];
+  debug: bool;
+}
+[@@deriving cmdliner, show]
+
+let pos_all ()=
+  let argv = [|"cmd"; "a"; "b"; "--debug"; "c"; "d"|] in
+  let expected = {files=["a"; "b"; "c"; "d"]; debug=true}  in
+  cmd_test_case "expected pos_all to work"
+    ~term:(pos_all_cmdliner_term ())
+    ~argv ~expected ~pprinter:pp_pos_all
+
 let test_set =
   [ ("simple types", `Quick, simple)
   ; ("default types", `Quick, defaults)
@@ -241,6 +254,10 @@ let test_set =
   ; ("custom types", `Quick, customs)
   ; ("opt_all type", `Quick, opt_all)
   ; ("term type", `Quick, terms)
-  ; ("misc types", `Quick, miscs) ]
+  ; ("misc types", `Quick, miscs)
+  ; ("pos_all", `Quick, pos_all)
+
+  ]
+  
 
 let () = Alcotest.run "Ppx_deriving_cmdliner" [("test", test_set)]

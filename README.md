@@ -112,4 +112,12 @@ for the given type.
 
 1. Docs: `[@doc "Overwrites the docstring"]`, `[@docs "SECTION TWO"]`, `[@docv "VAL"]`
 2. Environment variables: `[@env "ENVNAME"]`, `[@env.doc "Docs for the variable"]`, `[@env.docs "SECTION ENVS"]`
-3. Other: `[@list_sep '@']`, `[@default 123]`, `[@enum [("a", Foo); ("b", Bar)]]`, `[@aka ["b";"another-flag-name"]]`, `[@conv cmdliner_converter]` (cf. [required argument to `conv`](http://erratique.ch/software/cmdliner/doc/Cmdliner.Arg.html#VALconv) in Cmdliner), `[@opt_all]` only on `a' list` fields, `[@term cmdliner_term]` for assiging an arbitrary `Cmdliner.Term.t` to a field.
+3. Other:
+   * `[@list_sep '@']`
+   * `[@default 123]` (default value)
+   * `[@enum [("a", Foo); ("b", Bar)]]` (custom parser for values)
+   * `[@aka ["b";"another-flag-name"]]` (aliases for the flag)
+   * `[@conv cmdliner_converter]` (custom converter; cf. [required argument to `conv`](http://erratique.ch/software/cmdliner/doc/Cmdliner.Arg.html#VALconv) in Cmdliner)
+   * `[@opt_all]` only on `a' list` fields
+   * `[@pos_all]` (all positional arguments; only on `'a list` fields)
+   * `[@term cmdliner_term]` for assiging an arbitrary `Cmdliner.Term.t` to a field.

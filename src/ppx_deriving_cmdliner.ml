@@ -158,7 +158,7 @@ let rec docv_for ?list_sep typ =
 
 
 
-let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
+let info_for ~is_pos ~attrs ~name ?list_sep ~typ ~env =
   let loc = typ.ptyp_loc in
   let name' = match attr_string_opt "name" attrs with
   | None -> str (clize_flag name)
@@ -173,9 +173,10 @@ let info_for ?pos ~attrs ~name ?list_sep ~typ ~env =
   | Some d -> str d in
   let doc' = attr_string_opt "ocaml.doc" attrs |> expr_opt ~loc ~kind:str  in
   let docs' = attr_string_opt "docs" attrs |> expr_opt ~loc ~kind:str in
-  let names = match pos with
-  | None -> [%expr [%e name'] :: [%e aka]]
-  | Some _ -> [%expr []]
+  let names = if is_pos then
+    [%expr []]
+  else
+    [%expr [%e name'] :: [%e aka]]
   in
   [%expr info ?env:[%e env]
       ?docs:[%e docs'] ?doc:[%e doc'] ~docv:[%e docv'] [%e names]]
@@ -199,7 +200,8 @@ let rec ser_expr_of_typ typ attrs name =
   | Some conv -> conv
   in
   let pos = attr_int_opt "pos" attrs in
-  let info' = info_for ?pos ~attrs ~name ?list_sep ~typ ~env:env' in
+  let is_pos = pos<>None || key_attr_exists attrs "pos_all" in
+  let info' = info_for ~is_pos ~attrs ~name ?list_sep ~typ ~env:env' in
   match typ with
   | _ when value_attr_exists attrs "term" ->
     attr_expr_exn attrs "term"
@@ -247,6 +249,14 @@ let rec ser_expr_of_typ typ attrs name =
     | Some d -> [%expr
       Cmdliner.Arg.(value & opt_all [%e conv'] [%e d] & [%e info'])]
     end
+
+  | [%type: [%t? typ] list]
+    when key_attr_exists attrs "pos_all" ->
+    let conv' = match attr_expr attrs "conv" with
+    | None -> converter_for ?list_sep ?enum:(attr_expr attrs "enum") typ
+    | Some conv -> conv
+    in
+    [%expr Cmdliner.Arg.(value & pos_all [%e conv'] [] & [%e info'])]
   | [%type: unit] -> failwith "`unit` is not supported in Ppx_deriving_cmdliner"
   | [%type: int] | [%type: int32] | [%type: Int32.t] | [%type: int64]
   | [%type: Int64.t] | [%type: nativeint] | [%type: Nativeint.t]
